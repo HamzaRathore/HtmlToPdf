@@ -1,15 +1,20 @@
 const pdfService = require("../services/pdfService");
 
-// This function handles the incoming request and sends the response
 const generatePdf = async (req, res) => {
-  const { htmlContent, options } = req.body;
+  const { htmlContent, options = {} } = req.body;
 
-  if (!htmlContent) {
-    return res.status(400).json({ error: "HTML content is required" });
-  }
+  if (!htmlContent) return res.status(400).json({ error: "HTML content is required" });
 
   try {
-    const pdfBuffer = await pdfService.generatePdf(htmlContent,options);
+    const pdfBuffer = await pdfService.generatePdf(htmlContent, options);
+
+    if (options.asBase64) {
+      // useful for Bubble if you want JSON with base64 string
+      return res.json({
+        filename: options.filename || "document.pdf",
+        data: pdfBuffer.toString("base64"),
+      });
+    }
 
     res.set({
       "Content-Type": "application/pdf",
@@ -22,6 +27,4 @@ const generatePdf = async (req, res) => {
   }
 };
 
-module.exports = {
-  generatePdf,
-};
+module.exports = { generatePdf };
